@@ -2,9 +2,11 @@
 
 The coolest and easiest Vue App to track your current position and send it to your trusted contacts through SMS.
 
-Built with love using Firebase (Firestore and Firebase Hosting) and Twilio for the SMS capabilities. You have to configure your own secrets for the firebase functions, firestore and firebase hosting if you decide to deploy it there.
+Built with love using Firebase (Firestore and Firebase Hosting) and Nexmo for the SMS capabilities. You have to configure your own secrets for the firebase functions, firestore and firebase hosting if you decide to deploy it there.
 
 Otherwise you may create the Docker image and run it where you are more confortable!
+
+Check out a step by step tutorial [here](https://dev.to/vuevixens/no-panic-vue-js-google-maps-firebase-nexmo-sms-deployment-hands-on-step-by-step-tutorial-5g3o)
 
 ## To Do:
 
