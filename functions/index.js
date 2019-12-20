@@ -2,21 +2,21 @@ const functions = require('firebase-functions')
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
-// });
 
-// Init Twilio
-const twilio = require('twilio')
-const accountSid = functions.config().twilio.sid
-const authToken = functions.config().twilio.token
-const twilioNumber = functions.config().twilio.number
+// Init Nexmo
+const Nexmo = require('nexmo');
+const API_KEY = functions.config().nexmo.apikey
+const API_SECRET = functions.config().nexmo.apikey
+const FROM = functions.config().nexmo.phone
 
-const client = new twilio(accountSid, authToken)
+// init nexmo client
+const nexmo = new Nexmo({
+  apiKey: API_KEY,
+  apiSecret: API_SECRET,
+});
 
 /**
- * Send SMS using Twilio
+ * Send SMS using Nexmo
  */
 exports.sendSMS = functions.https.onCall((data, context) => {
   // getting the message and phone number
@@ -35,16 +35,35 @@ exports.sendSMS = functions.https.onCall((data, context) => {
   console.log(`${currDate.toISOString()} - Sending SMS to: ${phoneTo}`)
   console.log(`${currDate.toISOString()} - Sending Message: ${message}`)
 
-  // sending back the promise of send the SMS through Twilio
-  return client.messages
-    .create({ from: twilioNumber, body: message, to: phoneTo })
-    .then(message => {
-      if (!message.error_code) {
-        return { message: 'Message sent.', success: true }
-      }
-      return { message: message.error_message, sucess: false }
-    })
-    .catch(err => {
-      return { message: err.message, success: false }
-    })
+  //sending back the promise of send the SMS through Nexmo
+  //Note: Because Nexmo doesn't support promises (Just callbacks). We create our Custom promise to handle nexmo response
+  var NexmoPromise = function(FROM, phoneTo, message){
+    var pro = new Promise((resolve, reject)=> {
+
+      nexmo.message.sendSms(FROM, phoneTo, message, { type: "unicode" }, (err, responseData) => {
+
+        if (err) {
+          console.log(err);
+          resolve({ message: err, sucess: false })
+        } else {
+          if(responseData.messages[0]['status'] === "0") {
+            console.log("Message sent successfully.");
+            resolve({ message: 'Message sent.', success: true })
+          } else {
+            console.log(`Message failed with error: ${responseData.messages[0]['error-text']}`);
+            resolve({ message: responseData.messages[0]['error-text'], success: false })
+          }
+        }
+
+      })
+
+  })
+
+  return pro
+
+ }
+
+ //Execute the nexmo function and return the promise
+ return NexmoPromise(FROM, phoneTo, message)
+  
 })
